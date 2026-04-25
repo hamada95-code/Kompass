@@ -82,7 +82,7 @@ body{
     </div>
     <button class="nav-btn" id="btn-next" onclick="navigate(1)">&#8594;</button>
   </div>
-  <div class="thumb-strip" id="thumb-strip"></div>
+  <div class="zoom-row"><button class="zoom-btn" onclick="zoom(-1)" title="Zoom out">&#8722;</button><span class="zoom-label" id="zoom-label">100%</span><button class="zoom-btn" onclick="zoom(1)" title="Zoom in">&#43;</button></div>
   <p class="kb-hint">Click left/right edge &nbsp;·&nbsp; <span class="kb-key">←</span><span class="kb-key">→</span> keys &nbsp;·&nbsp; Swipe</p>
 </div>
 <script>
@@ -105,7 +105,7 @@ const frame=document.getElementById('frame'),img=document.getElementById('page-i
   prog=document.getElementById('prog'),label=document.getElementById('pg-label'),
   titleEl=document.getElementById('page-title'),
   prev=document.getElementById('btn-prev'),next=document.getElementById('btn-next'),
-  strip=document.getElementById('thumb-strip'),loading=document.getElementById('loading');
+  loading=document.getElementById('loading');
 function buildThumbs(){
   PAGES.forEach((p,i)=>{
     const t=document.createElement('div');
@@ -115,12 +115,19 @@ function buildThumbs(){
     strip.appendChild(t);
   });
 }
+
+let zoomLevels=[75,100,125,150,175],zoomIdx=1;
+function zoom(dir){
+  zoomIdx=Math.max(0,Math.min(zoomLevels.length-1,zoomIdx+dir));
+  frame.style.maxWidth=zoomLevels[zoomIdx]+'%';
+  document.getElementById('zoom-label').textContent=zoomLevels[zoomIdx]+'%';
+}
 function ui(){
   prog.style.width=(cur/(PAGES.length-1)*100)+'%';
   label.textContent=(cur+1)+' / '+PAGES.length;
   titleEl.textContent=PAGES[cur].title;
   prev.disabled=cur===0;next.disabled=cur===PAGES.length-1;
-  document.querySelectorAll('.thumb').forEach((t,i)=>t.classList.toggle('active',i===cur));
+  
 }
 function navigate(dir){
   if(busy)return;const n=cur+dir;if(n<0||n>=PAGES.length)return;
@@ -129,7 +136,7 @@ function navigate(dir){
   setTimeout(()=>{cur=n;img.src=PAGES[cur].img;ui();},210);
   setTimeout(()=>{frame.classList.remove('flipping','flipping-back');busy=false;},440);
 }
-img.onload=()=>{loading.style.display='none';frame.style.display='block';buildThumbs();ui();};
+img.onload=()=>{loading.style.display='none';frame.style.display='block';ui();};
 img.src=PAGES[0].img;
 document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')navigate(1);if(e.key==='ArrowLeft')navigate(-1);});
 let ts=0;
